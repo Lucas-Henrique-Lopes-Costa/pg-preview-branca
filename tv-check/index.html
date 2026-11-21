@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta name="robots" content="noindex,nofollow">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-9GC6B1H6Y7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-9GC6B1H6Y7');
+</script>
+<meta charset="utf-8">
+<meta name="facebook-domain-verification" content="cf2dfkic2owkbc9cs532528oaw7kjm" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagnostico do navegador - Paraguai Global Group</title>
+<!-- Pagina de diagnostico: ES5 puro, sem dependencias, sem recursos modernos.
+     Precisa renderizar mesmo em navegadores muito antigos (TV). -->
+<style>
+  body { background:#000; color:#fff; font-family:Arial,Helvetica,sans-serif;
+         font-size:22px; line-height:1.5; margin:0; padding:20px; }
+  h1 { font-size:30px; color:#f6b94a; margin:0 0 4px 0; }
+  p.sub { color:#aaa; font-size:18px; margin:0 0 20px 0; }
+  #ua { background:#1a1a1a; border:2px solid #f6b94a; padding:14px;
+        font-size:19px; word-wrap:break-word; margin-bottom:22px; }
+  table { border-collapse:collapse; width:100%; }
+  td { padding:9px 10px; border-bottom:1px solid #333; font-size:22px; }
+  td.k { color:#ddd; }
+  td.v { text-align:right; font-weight:bold; width:130px; }
+  .ok  { color:#25D366; }
+  .no  { color:#ff4d4d; }
+  h2 { font-size:23px; color:#f6b94a; margin:26px 0 6px 0; }
+</style>
+</head>
+<body>
+  <h1>Diagnostico do navegador</h1>
+  <p class="sub">Tire uma foto desta tela inteira (role ate o fim).</p>
+
+  <h2>1. Identificacao</h2>
+  <div id="ua">carregando...</div>
+
+  <h2>2. Recursos de CSS</h2>
+  <table id="css"></table>
+
+  <h2>3. Recursos de JavaScript</h2>
+  <table id="js"></table>
+
+<script>
+/* ES5 apenas: nada de arrow function, let/const ou template literal,
+   senao o proprio diagnostico quebra nos navegadores que queremos medir. */
+(function () {
+  var d = document;
+
+  d.getElementById('ua').innerHTML =
+      'UA: ' + navigator.userAgent +
+      '<br>Tela: ' + screen.width + ' x ' + screen.height +
+      '<br>Janela: ' + (window.innerWidth || 0) + ' x ' + (window.innerHeight || 0) +
+      '<br>devicePixelRatio: ' + (window.devicePixelRatio || 'n/d');
+
+  function sup(prop, val) {
+    if (!window.CSS || !CSS.supports) return null;
+    try {
+      /* CSS.supports tem duas formas: (prop, val) e (textoDaCondicao).
+         Seletores so funcionam na forma de 1 argumento. */
+      return arguments.length > 1 ? CSS.supports(prop, val) : CSS.supports(prop);
+    } catch (e) { return null; }
+  }
+
+  /* flexbox gap precisa de teste real: CSS.supports('gap','1px') responde
+     true em navegadores que so implementam gap no grid, nao no flex. */
+  function flexGap() {
+    try {
+      var f = d.createElement('div');
+      f.style.display = 'flex';
+      f.style.flexDirection = 'column';
+      f.style.rowGap = '10px';
+      f.appendChild(d.createElement('div'));
+      f.appendChild(d.createElement('div'));
+      d.body.appendChild(f);
+      var ok = f.scrollHeight === 10;
+      f.parentNode.removeChild(f);
+      return ok;
+    } catch (e) { return null; }
+  }
+
+  function row(table, label, val) {
+    var tr = table.insertRow(-1);
+    var a = tr.insertCell(0); a.className = 'k'; a.innerHTML = label;
+    var b = tr.insertCell(1); b.className = 'v';
+    if (val === true)       { b.innerHTML = 'SIM'; b.className = 'v ok'; }
+    else if (val === false) { b.innerHTML = 'NAO'; b.className = 'v no'; }
+    else                    { b.innerHTML = '?';   b.className = 'v'; }
+  }
+
+  var cssT = d.getElementById('css');
+  row(cssT, 'flexbox gap <i>(Chrome 84)</i>',   flexGap());
+  row(cssT, 'clamp() <i>(Chrome 79)</i>',       sup('width', 'clamp(1px,2px,3px)'));
+  row(cssT, 'inset: <i>(Chrome 87)</i>',        sup('inset', '0px'));
+  row(cssT, 'aspect-ratio <i>(Chrome 88)</i>',  sup('aspect-ratio', '1/1'));
+  row(cssT, ':is() <i>(Chrome 88)</i>',         sup('selector(:is(a))'));
+  row(cssT, 'rgb(r g b/a) <i>(Chrome 65)</i>',  sup('color', 'rgb(1 2 3/0.5)'));
+  row(cssT, 'variaveis CSS <i>(Chrome 49)</i>', sup('--x', '1'));
+  row(cssT, 'backdrop-filter <i>(Chrome 76)</i>', sup('backdrop-filter', 'blur(2px)') || sup('-webkit-backdrop-filter', 'blur(2px)'));
+  row(cssT, 'position: sticky',                 sup('position', 'sticky'));
+  row(cssT, 'display: grid',                    sup('display', 'grid'));
+  row(cssT, 'object-fit',                       sup('object-fit', 'cover'));
+
+  var jsT = d.getElementById('js');
+  function eval5(code) { try { eval(code); return true; } catch (e) { return false; } }
+  row(jsT, 'arrow function <i>(ES6)</i>', eval5('var f=function(){};f=(x)=>x;'));
+  row(jsT, 'let / const',                 eval5('let a=1; const b=2;'));
+  row(jsT, 'template literal',            eval5('var s=`x`;'));
+  row(jsT, 'Promise',                     typeof Promise !== 'undefined');
+  row(jsT, 'fetch',                       typeof fetch !== 'undefined');
+  row(jsT, 'IntersectionObserver',        typeof IntersectionObserver !== 'undefined');
+  row(jsT, 'CSS.supports',                !!(window.CSS && CSS.supports));
+  row(jsT, 'SVG inline',                  !!(d.createElementNS && d.createElementNS('http://www.w3.org/2000/svg','svg').createSVGRect));
+})();
+</script>
+</body>
+</html>
